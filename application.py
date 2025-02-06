@@ -1,8 +1,6 @@
-import asyncio
 import os
 import json
 import datetime
-import time
 from api import OddApi
 from textual.app import App, ComposeResult
 from textual.containers import VerticalGroup, HorizontalGroup, VerticalScroll, Grid, Center
@@ -165,11 +163,11 @@ class TicketObject(Widget):
 
                 match wonBet:
                     case True:
-                        emoji = ":green_circle:"#":heavy_check_mark:"
+                        emoji = ":green_circle:"
                     case False:
-                        emoji = ":red_circle:"#":heavy_multiplication_x:"
+                        emoji = ":red_circle:"
                     case _:
-                        emoji = ":yellow_circle:"#":heavy_large_circle:"
+                        emoji = ":yellow_circle:"
                 scommesseVinte.append(wonBet)
                 states.append(state)
                 self.multodds *= float(game.odds[associate[oddSelected]])
@@ -285,6 +283,8 @@ class MainAppScreen(Screen):
         self.query_one("#balanceLab").update(f"Soldi: {newmoney}")
     async def reload_bets(self):
         bets = []
+        if not os.path.exists("bets"):
+            return
         for i in os.listdir("bets"):
             print(f"loading {i}")
             bet = []
@@ -447,6 +447,9 @@ class MainAppScreen(Screen):
         print(button.id)
         if button.id == "buyButton":
             moneyValue = round(float(self.query_one("#soldiInput").value), 2)
+            if moneyValue == 0 or moneyValue is None:
+                self.app.push_screen(WarningDialogDefault("Inserisci un valore di soldi con cui piazzare la scommessa, diverso da 0!"))
+                return
             self.saveBet(moneyValue)
         elif button.id == "reloadBet":
             await self.reload_bets()
@@ -461,10 +464,14 @@ class MainAppScreen(Screen):
             return
         else:
             self.balance -= money
-        for file in os.listdir("bets"):
-            num = int(file.removesuffix(".bet"))
-            if num >= index:
-                index = num + 1
+        if os.path.exists("bets"):
+            for file in os.listdir("bets"):
+                num = int(file.removesuffix(".bet"))
+                if num >= index:
+                    index = num + 1
+        else:
+            os.mkdir("bets")
+            index = 0
         with open(f"bets/{index}.bet", "w", encoding="utf-8") as f:
             bettowrite = {}
             for id, value in self.current_bet.items():

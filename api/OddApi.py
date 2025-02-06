@@ -89,7 +89,6 @@ class Scraper():
 
 
     async def get_other_bet(self, league):
-        towrite = ""
         link = None
         print("Getting")
         match league:
@@ -163,12 +162,12 @@ class Scraper():
 
         async with async_playwright() as p:
             browser = await p.chromium.launch(headless=True, args=[
-            "--disable-gpu",  # Disabilita GPU
-            "--no-sandbox",  # Utile per esecuzioni in ambienti CI
-            "--disable-dev-shm-usage",  # Evita problemi di memoria condivisa
-            "--disable-extensions",  # Disabilita le estensioni
-            "--disable-background-networking",  # Limita attività di rete non necessarie
-            "--mute-audio"  # Disabilita audio
+            "--disable-gpu",
+            "--no-sandbox",
+            "--disable-dev-shm-usage", 
+            "--disable-extensions",
+            "--disable-background-networking", 
+            "--mute-audio" 
             ])
             page = await browser.new_page()
             await page.route("**/*", lambda route, request: 
@@ -199,7 +198,7 @@ class Scraper():
         return completeParsed
 
     async def get_request(self, league : str):
-        towrite = ""
+
         link = None
         match league:
             case "Serie A":
@@ -221,12 +220,12 @@ class Scraper():
         self.cacheDB(league)
         async with async_playwright() as p:
             browser = await p.chromium.launch(headless=True, args=[
-            "--disable-gpu",  # Disabilita GPU
-            "--no-sandbox",  # Utile per esecuzioni in ambienti CI
-            "--disable-dev-shm-usage",  # Evita problemi di memoria condivisa
-            "--disable-extensions",  # Disabilita le estensioni
-            "--disable-background-networking",  # Limita attività di rete non necessarie
-            "--mute-audio"  # Disabilita audio
+            "--disable-gpu",
+            "--no-sandbox",
+            "--disable-dev-shm-usage",
+            "--disable-extensions",
+            "--disable-background-networking",
+            "--mute-audio"
         ])
             page = await browser.new_page()
             await page.route("**/*", lambda route, request: 
@@ -235,7 +234,7 @@ class Scraper():
             await page.goto(link)
             print("Getting")
             gameRows = await page.locator('//div[@class="group flex"]').all()
-            #print(gameRows)
+
             rowDataraw = [await row.inner_text() for row in gameRows]
             rowDataraw = [text.split("\n") for text in rowDataraw]
             rowData = []
@@ -247,9 +246,9 @@ class Scraper():
                 rowData.append(rowParsed[:len(rowParsed)-1])
                         
             print(rowData)
-            # rowData = [row.split("\n") for row in rowData]
+
             completeParsed = []
-            #print(self.teamMap)
+
             for game in rowData:
                 parsedDate = None
                 for dbgame in self.db:
@@ -266,21 +265,8 @@ class Scraper():
                 except ValueError:
                     print("Quote non corrette")
                     continue
-                # {
-                #     "date": parsedDate,
-                #     "time": game[0],
-                #     "home": game[1],
-                #     "away": game[3],
-                #     "1": game[4],
-                #     "x": game[5],
-                #     "2": game[6]
-                # }
-                towrite += f"{game[1]} --- {game[3]}\n"
                 completeParsed.append(gameObject)
-                #print(gameObject)
             await page.close()
             await browser.close()
-            with open("nomiTrascrizione.txt", "w", encoding="utf-8") as f:
-                f.write(towrite)
         return completeParsed
 
