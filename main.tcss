@@ -1,0 +1,180 @@
+SplashScreen {
+    width: 100%;
+    height: 100%;
+    align: center middle;
+}
+SplashScreen VerticalGroup {
+    width: 100%;
+    height: 100%;
+    align: center middle;
+}
+TabbedContent{
+    height:93%
+}
+
+Screen {
+    
+    align: center top
+}
+Select{
+    width: 45;
+    height: auto;
+}
+GameObject{
+    width: auto;
+    height: auto;
+    border: solid blue;
+    align-horizontal: left;
+}
+#labelData{
+    margin-top: 1;
+}
+VerticalGroup{
+    width: auto
+}
+#oddGroup{
+    width:75w;
+    align-horizontal: right;
+    content-align: right middle;
+    height: auto;
+
+}
+#labelUnit{
+    text-align:center;
+    width: 100%;
+}
+#odd1{
+    margin-right: 1;
+    border: solid blue
+}
+#ruleUnit{
+    width:auto;
+    margin:0;
+    padding:0
+}
+#oddx{
+    margin-right:1;
+    border: solid blue
+}
+#odd2{
+    border: solid blue
+}
+TabbedContent {
+    & > ContentTabs {
+        #tabs-list {
+            align-horizontal: center;
+        }
+    }
+}
+#groupGameDetail{
+    align:left middle;
+    height:100%;
+    width: 29
+}
+#labelTitoletto {
+    align: center middle;
+    width:100%;
+    height: auto; 
+    text-align: center;
+    color: white;
+}
+LoadingIndicator{
+    width: 100%;
+    height: 6;
+    color: red;
+}
+MainAppScreen #title{
+    width: 100%;
+    text-align: center;
+    margin-bottom: 2;
+    margin-top: 2;
+}
+Input{
+    width: 30;
+    height: auto
+}
+#GroupBuy{
+    align: center middle;
+    border: solid blue;
+}
+#GroupBuy Label{
+    text-align: right;
+    align: center middle;
+    height: 100%;
+    content-align: center middle;
+    margin-right: 1
+}
+#GroupBuy Button{
+    margin-left: 3
+}
+#ticketGroup {
+    margin-bottom: 3
+}
+#titleResult{
+    border: solid blue;
+    width: 100%;
+    text-align: center
+}
+#titleScheda{
+    border: solid blue;
+    width: 100%;
+    text-align: center
+}
+#resultTicketGroup{
+
+}
+
+TicketObject{
+    margin: 0;
+    height:auto
+}
+
+TicketObject Collapsible{
+}
+TicketObject #labelValue{
+    align: center middle;
+    content-align: center middle;
+    height:100%
+}
+TicketObject #internalGroupCash{
+    align:center middle;
+    border: solid blue
+}
+TicketObject Button{
+    margin-left: 40;
+}
+WarningDialogDefault{
+    width: 100%;
+    height: 100%;
+    align: center middle
+}
+WarningDialogDefault Grid{
+    grid-size: 1;
+    grid-gutter: 1 2;
+    grid-rows: 1fr 3;
+    padding: 0 1;
+    width: 60;
+    height: 11;
+    border: thick black 80%;
+    background: $surface;
+}
+WarningDialogDefault Button{
+    width: 100%
+}
+WarningDialogDefault Label{
+    text-align: center;
+    width: 100%;
+    height: 100%;
+    content-align: center middle;
+    border: solid blue
+}
+MainAppScreen #reloadBet{
+    align:center middle;
+    width: 30%;
+    margin-top: 1
+}
+MainAppScreen #balanceLab{
+    width: 100%;
+    border: solid white;
+    text-align: center
+}
