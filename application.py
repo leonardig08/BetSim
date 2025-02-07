@@ -7,7 +7,7 @@ from textual.containers import VerticalGroup, HorizontalGroup, VerticalScroll, G
 from textual.widgets import Header, Label, Rule, LoadingIndicator, TabbedContent, TabPane, Select, Button, Collapsible, Input
 from textual.screen import Screen, ModalScreen
 from textual.widget import Widget
-from asset import stringText
+from asset import stringText, cssText
 from textual import work
 from dataclasses import dataclass, asdict
 from textual.reactive import reactive
@@ -48,10 +48,11 @@ class SplashScreen(Screen):
             yield LoadingIndicator()
 
 class GameObject(Widget):
-    def __init__(self, gameObject, id=None, not1x2=False):
+    def __init__(self, gameObject, id=None, not1x2=False, prepress=None):
         super().__init__(id=id)
         self.game = gameObject
         self.rendermode = not1x2
+        self.prepress = prepress
     def compose(self):
         if self.rendermode:
             with HorizontalGroup():
@@ -60,12 +61,16 @@ class GameObject(Widget):
                     yield Label(f"{self.game.date}  ||  {self.game.time}", id="labelData")
                 with HorizontalGroup(id="oddGroup"):
                     index = 0
+                    btts = []
                     for i in ["Under", "Over"]:
                         with VerticalGroup(id=f"odd{i}"):
                             yield Label(i.upper(), id="labelUnit")
                             yield Rule(line_style="solid", id="ruleUnit")
-                            yield Button(self.game.odds[index], "primary", name=f"{self.game.home}/{self.game.away}/{i}")
+                            btts.append(Button(self.game.odds[index], "primary", name=f"{self.game.home}/{self.game.away}/{i}"))
+                            yield btts[index]
                         index += 1
+                    if self.prepress is not None:
+                        btts[self.prepress].variant = "success"
         else:
             with HorizontalGroup():
                 with VerticalGroup(id="groupGameDetail"):
@@ -73,13 +78,19 @@ class GameObject(Widget):
                     yield Label(f"{self.game.date}  ||  {self.game.time}", id="labelData")
                 with HorizontalGroup(id="oddGroup"):
                     index = 0
+                    btts = []
                     for i in ["1", "x", "2"]:
                         with VerticalGroup(id=f"odd{i}"):
                             yield Label(i.upper(), id="labelUnit")
                             yield Rule(line_style="solid", id="ruleUnit")
-                            yield Button(self.game.odds[index], "primary", name=f"{self.game.home}/{self.game.away}/{i}")
+                            btts.append(Button(self.game.odds[index], "primary", name=f"{self.game.home}/{self.game.away}/{i}"))
+                            yield btts[index]
                         index += 1
-
+                    if self.prepress is not None:
+                        btts[self.prepress].variant = "success"
+                    
+    def placeHolder(self):
+        pass
     def on_button_pressed(self, event: Button.Pressed):
         button = event.button
         data = button.name.split("/")
@@ -417,14 +428,23 @@ class MainAppScreen(Screen):
                 self.odd_cache[league] = odds
         await self.query_one(f"#{containerName}").remove_children()
         print(odds)
+        print(self.current_bet)
         if odds == []:
             self.query_one(f"#{containerName}").mount(Label("Nessuna Partita disponibile,  appena disponibili appariranno qui"))
         else:
             for gameData in odds:
                 if underover:
-                    self.query_one(f"#{containerName}").mount(GameObject(gameData, id=f"{gameData.home.replace(" ", "").replace(".", "")}_{gameData.away.replace(" ", "").replace(".", "")}_uo", not1x2=True))
+                    odder = None
+                    if f"{gameData.home}{gameData.away}{gameData.date}" in self.current_bet:
+                        odder = ["Under", "Over"].index(self.current_bet[f"{gameData.home}{gameData.away}{gameData.date}"][1])
+                    print(odder)
+                    self.query_one(f"#{containerName}").mount(GameObject(gameData, id=f"{gameData.home.replace(" ", "").replace(".", "")}_{gameData.away.replace(" ", "").replace(".", "")}_uo", not1x2=True, prepress=odder))
                 else:
-                    self.query_one(f"#{containerName}").mount(GameObject(gameData, id=f"{gameData.home.replace(" ", "").replace(".", "")}_{gameData.away.replace(" ", "").replace(".", "")}"))
+                    odder = None
+                    if f"{gameData.home}{gameData.away}{gameData.date}" in self.current_bet:
+                        odder = ["1", "x", "2"].index(self.current_bet[f"{gameData.home}{gameData.away}{gameData.date}"][1])
+                    print(odder)
+                    self.query_one(f"#{containerName}").mount(GameObject(gameData, id=f"{gameData.home.replace(" ", "").replace(".", "")}_{gameData.away.replace(" ", "").replace(".", "")}", prepress=odder))
         self.query_one(f"#{containerName}").set_loading(False)
     def add_bet(self, game, odd, buttonid, underover):
         print(self.current_bet)
@@ -521,3 +541,5 @@ class BetSim(App):
 if __name__ == "__main__":
     app = BetSim()
     app.run()
+
+

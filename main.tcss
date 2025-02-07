@@ -13,7 +13,6 @@ TabbedContent{
 }
 
 Screen {
-    
     align: center top
 }
 Select{

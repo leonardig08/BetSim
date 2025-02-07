@@ -1,3 +1,8 @@
 /.venv
 /nomiTrascrizione.txt
 /__pycache__
+icont.ico
+*.exe
+playwright/
+bets/
+api/__pycache__
