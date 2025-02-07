@@ -6,3 +6,4 @@ icont.ico
 playwright/
 bets/
 api/__pycache__
+data/balance.enc

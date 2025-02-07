@@ -221,6 +221,7 @@ class TicketObject(Widget):
 
 class MainAppScreen(Screen):
     balance = reactive(0)
+    moneyloaded = False
     def compose(self):
         self.odd_cache = {}
         self.rejectIndex = 0
@@ -291,12 +292,15 @@ class MainAppScreen(Screen):
             tempbalance = 0
             with open("data/balance.enc", "w", encoding="utf-8") as f:
                 f.write(json.dumps(tempbalance))
+        self.moneyloaded = True
         self.balance = tempbalance
+        
     def watch_balance(self, newmoney):
-        self.query_one("#balanceLab").update(f"Soldi: {newmoney}")
-        print("Saving ",newmoney)
-        with open("data/balance.enc", "w", encoding="utf-8") as f:
-                f.write(json.dumps(newmoney))
+        if self.moneyloaded:
+            self.query_one("#balanceLab").update(f"Soldi: {newmoney}")
+            print("Saving ",newmoney)
+            with open("data/balance.enc", "w", encoding="utf-8") as f:
+                    f.write(json.dumps(newmoney))
     async def reload_bets(self):
         bets = []
         if not os.path.exists("bets"):
@@ -479,13 +483,19 @@ class MainAppScreen(Screen):
         elif button.id == "reloadBet":
             await self.reload_bets()
         elif button.id == "reloadDb":
-            self.reload_db()
-
+            print("reloading")
+            button.parent.parent.parent.query_one("#resultTicketGroup").set_loading(True)
+            self.call_after_refresh(self.reload_db)
+    def removeLoading(self):
+        self.query_one("#resultTicketGroup").set_loading(False)
     @work(thread=True)
     def reload_db(self):
         for id, values in leaguesDict.items():
             for i in values:
                 databaseGame[i] = scraper.cacheDB(i)
+        self.reload_bets()
+        self.app.call_from_thread(self.removeLoading)
+
 
 
     def saveBet(self, money):
