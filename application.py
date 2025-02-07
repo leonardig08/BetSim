@@ -524,11 +524,13 @@ class MainAppScreen(Screen):
                 game = asdict(value[0])
                 odd = value[1]
                 bettowrite[id] = [game, odd]
-                stringText += f"{game.home}-{game.away} || {odd}"
+                stringToWrite += f"{game.home}-{game.away} || {odd}\n"
                 
             bet = [money, bettowrite]
             content = json.dumps(bet, indent=4)
             f.write(content)
+        with open(f"bets/memobe{index}t.txt", "w", encoding="utf-8") as f:
+            f.write(stringToWrite)
         
         
         
