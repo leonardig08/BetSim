@@ -516,6 +516,7 @@ class MainAppScreen(Screen):
         else:
             os.mkdir("bets")
             index = 0
+        stringToWrite = ""
         with open(f"bets/{index}.bet", "w", encoding="utf-8") as f:
             bettowrite = {}
             for id, value in self.current_bet.items():
@@ -523,10 +524,12 @@ class MainAppScreen(Screen):
                 game = asdict(value[0])
                 odd = value[1]
                 bettowrite[id] = [game, odd]
+                stringText += f"{game.home}-{game.away} || {odd}"
                 
             bet = [money, bettowrite]
             content = json.dumps(bet, indent=4)
             f.write(content)
+        
         
         
 
