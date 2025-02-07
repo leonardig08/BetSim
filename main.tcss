@@ -170,7 +170,14 @@ WarningDialogDefault Label{
 MainAppScreen #reloadBet{
     align:center middle;
     width: 30%;
-    margin-top: 1
+    margin-top: 1;
+    margin-bottom: 1
+}
+MainAppScreen #reloadDb{
+    align:center middle;
+    width: auto;
+    margin-top: 1;
+    margin-bottom: 1
 }
 MainAppScreen #balanceLab{
     width: 100%;

@@ -277,7 +277,9 @@ class MainAppScreen(Screen):
                     yield Button("Compra la scommessa", variant="success", id="buyButton")
             with TabPane("Risultati"):
                 yield Label("Schede Acquistate", id="titleResult")
-                yield Center(Button("Ricarica schede", "primary", id="reloadBet"))
+                with HorizontalGroup():
+                    yield Center(Button("Ricarica schede", "primary", id="reloadBet"))
+                    yield Center(Button("Ricarica risultati", "primary", id="reloadDb"))
                 yield VerticalScroll(id="resultTicketGroup")
         self.call_later(self.clear_cache)
         self.call_after_refresh(self.load_money)
@@ -292,6 +294,9 @@ class MainAppScreen(Screen):
         self.balance = tempbalance
     def watch_balance(self, newmoney):
         self.query_one("#balanceLab").update(f"Soldi: {newmoney}")
+        print("Saving ",newmoney)
+        with open("data/balance.enc", "w", encoding="utf-8") as f:
+                f.write(json.dumps(newmoney))
     async def reload_bets(self):
         bets = []
         if not os.path.exists("bets"):
@@ -473,6 +478,15 @@ class MainAppScreen(Screen):
             self.saveBet(moneyValue)
         elif button.id == "reloadBet":
             await self.reload_bets()
+        elif button.id == "reloadDb":
+            self.reload_db()
+
+    @work(thread=True)
+    def reload_db(self):
+        for id, values in leaguesDict.items():
+            for i in values:
+                databaseGame[i] = scraper.cacheDB(i)
+
 
     def saveBet(self, money):
         index = 0
@@ -516,10 +530,7 @@ class BetSim(App):
         self.dataLoaded = False
         
         self.call_later(self.load_data)
-    def watch_balance(self, newbalance):
-        with open("data/balance.enc", "w", encoding="utf-8") as f:
-                f.write(json.dumps(newbalance))
-        self.query_one("#balanceInd").update(f"Soldi: {self.balance}")
+    
     def load_main_screen(self):
         if self.dataLoaded:
             self.pop_screen()
