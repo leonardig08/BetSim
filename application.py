@@ -16,6 +16,8 @@ scraper = OddApi.Scraper()
 
 betTypes = ["1x2", "Under/Over"]
 
+mapNames = None
+
 
 
 leaguesDict = {"gamesItalia": ["Serie A"],
@@ -66,7 +68,7 @@ class GameObject(Widget):
                         with VerticalGroup(id=f"odd{i}"):
                             yield Label(i.upper(), id="labelUnit")
                             yield Rule(line_style="solid", id="ruleUnit")
-                            btts.append(Button(self.game.odds[index], "primary", name=f"{self.game.home}/{self.game.away}/{i}"))
+                            btts.append(Button(self.game.odds[index], "primary", name=f"{self.game.home.replace("/", "")}/{self.game.away.replace("/", "")}/{i}"))
                             yield btts[index]
                         index += 1
                     if self.prepress is not None:
@@ -83,7 +85,7 @@ class GameObject(Widget):
                         with VerticalGroup(id=f"odd{i}"):
                             yield Label(i.upper(), id="labelUnit")
                             yield Rule(line_style="solid", id="ruleUnit")
-                            btts.append(Button(self.game.odds[index], "primary", name=f"{self.game.home}/{self.game.away}/{i}"))
+                            btts.append(Button(self.game.odds[index], "primary", name=f"{self.game.home.replace("/", "")}/{self.game.away.replace("/", "")}/{i}"))
                             yield btts[index]
                         index += 1
                     if self.prepress is not None:
@@ -143,7 +145,7 @@ class TicketObject(Widget):
                 oddSelected = selected[1]
                 if state == 1:
                     for i in databaseGame[game.league]:
-                        if game.home == i["HomeTeam"] and game.away == i["AwayTeam"]:
+                        if game.home == mapNames[game.league][i["HomeTeam"]] and game.away == mapNames[game.league][i["AwayTeam"]]:
                             if i["HomeTeamScore"] != None and i["AwayTeamScore"] != None:
                                 score = [i["HomeTeamScore"], i["AwayTeamScore"]]
                 scoreString = "Risultato non presente" if score == None else f"{score[0]}-{score[1]}"
@@ -306,6 +308,8 @@ class MainAppScreen(Screen):
         if not os.path.exists("bets"):
             return
         for i in os.listdir("bets"):
+            if i[(len(i)-3):] != "bet":
+                continue
             print(f"loading {i}")
             bet = []
             with open("bets/"+i, "r", encoding="utf-8") as f:
@@ -447,29 +451,29 @@ class MainAppScreen(Screen):
                     if f"{gameData.home}{gameData.away}{gameData.date}" in self.current_bet:
                         odder = ["Under", "Over"].index(self.current_bet[f"{gameData.home}{gameData.away}{gameData.date}"][1])
                     print(odder)
-                    self.query_one(f"#{containerName}").mount(GameObject(gameData, id=f"{gameData.home.replace(" ", "").replace(".", "")}_{gameData.away.replace(" ", "").replace(".", "")}_uo", not1x2=True, prepress=odder))
+                    self.query_one(f"#{containerName}").mount(GameObject(gameData, id=f"{gameData.home.replace(" ", "").replace(".", "").replace("/","")}_{gameData.away.replace(" ", "").replace(".", "").replace("/","")}_uo", not1x2=True, prepress=odder))
                 else:
                     odder = None
                     if f"{gameData.home}{gameData.away}{gameData.date}" in self.current_bet:
                         odder = ["1", "x", "2"].index(self.current_bet[f"{gameData.home}{gameData.away}{gameData.date}"][1])
                     print(odder)
-                    self.query_one(f"#{containerName}").mount(GameObject(gameData, id=f"{gameData.home.replace(" ", "").replace(".", "")}_{gameData.away.replace(" ", "").replace(".", "")}", prepress=odder))
+                    self.query_one(f"#{containerName}").mount(GameObject(gameData, id=f"{gameData.home.replace(" ", "").replace(".", "").replace("/","")}_{gameData.away.replace(" ", "").replace(".", "").replace("/","")}", prepress=odder))
         self.query_one(f"#{containerName}").set_loading(False)
     def add_bet(self, game, odd, buttonid, underover):
         print(self.current_bet)
         if f"{game.home}{game.away}{game.date}" in self.current_bet.keys():
             if self.current_bet[f"{game.home}{game.away}{game.date}"][1] != odd:
                 self.current_bet[f"{game.home}{game.away}{game.date}"] = [game, odd]
-                for button in self.query_one(f"#{game.home.replace(" ", "").replace(".", "")}_{game.away.replace(" ", "").replace(".", "")}" if not underover else f"#{game.home.replace(" ", "").replace(".", "")}_{game.away.replace(" ", "").replace(".", "")}_uo").query("Button"):
+                for button in self.query_one(f"#{game.home.replace(" ", "").replace(".", "").replace("/","")}_{game.away.replace(" ", "").replace(".", "").replace("/","")}" if not underover else f"#{game.home.replace(" ", "").replace(".", "").replace("/","")}_{game.away.replace(" ", "").replace(".", "").replace("/","")}_uo").query("Button"):
                     button.variant = "primary"
-                self.query_one(f"#{game.home.replace(" ", "").replace(".", "")}_{game.away.replace(" ", "").replace(".", "")}" if not underover else f"#{game.home.replace(" ", "").replace(".", "")}_{game.away.replace(" ", "").replace(".", "")}_uo").query_one(f"#odd{odd}").query_one("Button").variant = "success"
+                self.query_one(f"#{game.home.replace(" ", "").replace(".", "").replace("/","")}_{game.away.replace(" ", "").replace(".", "").replace("/","")}" if not underover else f"#{game.home.replace(" ", "").replace(".", "").replace("/","")}_{game.away.replace(" ", "").replace(".", "").replace("/","")}_uo").query_one(f"#odd{odd}").query_one("Button").variant = "success"
             else:
                 self.current_bet.pop(f"{game.home}{game.away}{game.date}")
-                for button in self.query_one(f"#{game.home.replace(" ", "").replace(".", "")}_{game.away.replace(" ", "").replace(".", "")}" if not underover else f"#{game.home.replace(" ", "").replace(".", "")}_{game.away.replace(" ", "").replace(".", "")}_uo").query("Button"): #.replace(" ", "").replace(".", "")
+                for button in self.query_one(f"#{game.home.replace(" ", "").replace(".", "").replace("/","")}_{game.away.replace(" ", "").replace(".", "").replace("/","")}" if not underover else f"#{game.home.replace(" ", "").replace(".", "").replace("/","")}_{game.away.replace(" ", "").replace(".", "").replace("/","")}_uo").query("Button"): #.replace(" ", "").replace(".", "").replace("/","")
                     button.variant = "primary"
         else:
             self.current_bet[f"{game.home}{game.away}{game.date}"] = [game, odd]
-            self.query_one(f"#{game.home.replace(" ", "").replace(".", "")}_{game.away.replace(" ", "").replace(".", "")}" if not underover else f"#{game.home.replace(" ", "").replace(".", "")}_{game.away.replace(" ", "").replace(".", "")}_uo").query_one(f"#odd{odd}").query_one("Button").variant = "success"
+            self.query_one(f"#{game.home.replace(" ", "").replace(".", "").replace("/","")}_{game.away.replace(" ", "").replace(".", "").replace("/","")}" if not underover else f"#{game.home.replace(" ", "").replace(".", "").replace("/","")}_{game.away.replace(" ", "").replace(".", "").replace("/","")}_uo").query_one(f"#odd{odd}").query_one("Button").variant = "success"
 
     async def on_button_pressed(self, event: Button.Pressed):
         button = event.button
@@ -524,13 +528,15 @@ class MainAppScreen(Screen):
                 game = asdict(value[0])
                 odd = value[1]
                 bettowrite[id] = [game, odd]
-                stringToWrite += f"{game.home}-{game.away} || {odd}\n"
+                stringToWrite += f"{game["home"]}-{game["away"]} || {odd}\n"
                 
             bet = [money, bettowrite]
             content = json.dumps(bet, indent=4)
             f.write(content)
-        with open(f"bets/memobe{index}t.txt", "w", encoding="utf-8") as f:
+        with open(f"bets/memoBet{index}.txt", "w", encoding="utf-8") as f:
             f.write(stringToWrite)
+        self.current_bet = {}
+        self.reload_ticket()
         
         
         
@@ -556,6 +562,9 @@ class BetSim(App):
         for id, values in leaguesDict.items():
             for i in values:
                 databaseGame[i] = scraper.cacheDB(i)
+        with open("data/team_map.json", "r", encoding="utf-8") as f:
+            global mapNames
+            mapNames = json.loads(f.read())
         self.dataLoaded = True
         print(databaseGame)
         self.call_from_thread(self.load_main_screen)

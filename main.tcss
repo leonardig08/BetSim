@@ -3,6 +3,9 @@ SplashScreen {
     height: 100%;
     align: center middle;
 }
+Button:focus {
+    text-style: none;
+}
 SplashScreen VerticalGroup {
     width: 100%;
     height: 100%;

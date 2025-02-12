@@ -97,6 +97,25 @@
         "Braga": "Braga",
         "Nice": "Nizza"
     },
+    "Conference League":{
+        "TSC": "TSC",
+        "Jagiellonia": "Jagiellonia",
+        "Celje": "Celje",
+        "APOEL": "APOEL",
+        "Víkingur R.": "Vikingur Reykjavik",
+        "Panathinaikos": "Panathinaikos",
+        "Molde": "Molde",
+        "Shamrock Rovers": "Shamrock Rovers",
+        "Gent": "Gent",
+        "Real Betis": "Betis",
+        "Borac": "Borac Banja Luka",
+        "Olimpija": "O. Ljubljana",
+        "Omonoia": "Omonia",
+        "Pafos": "Pafos",
+        "Copenhagen": "FC Copenhagen",
+        "Heidenheim": "Heidenheim"
+
+    },
     "Premier League" : {
         "Man Utd": "Manchester Utd",
         "Fulham": "Fulham",

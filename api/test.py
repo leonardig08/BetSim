@@ -1,6 +1,6 @@
 import datetime
 from OddApi import Scraper
-import asyncio
+import asyncio, os
 
 async def main():
     scraper = Scraper()
@@ -11,4 +11,6 @@ def testData():
     print(time)
 
 # asyncio.run(main())
-testData()
+#testData()
+for i in os.listdir("bets"):
+    print(i[(len(i)-3):])
