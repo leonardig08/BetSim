@@ -30,7 +30,9 @@ leagueMap = {
     "Conference League": "soccer-international-clubs-t6eeb-uefa-europa-conference-league",
     "Premier League": "soccer-england-premier-league",
     "Bundesliga": "soccer-germany-bundesliga",
-    "La Liga": "soccer-spain-laliga"
+    "La Liga": "soccer-spain-laliga",
+    "Serie B": "soccer-italy-serie-b",
+    "Ligue 1": "soccer-france-ligue-1"
 }
 
 class BetAPI:
@@ -57,6 +59,7 @@ class BetAPI:
 
         events = response.json()["events"]
         gamebets = []
+        print(f"DB DB \n{self.db}")
         for event in events:
             if event["home"] is None:
                 continue
@@ -84,6 +87,7 @@ class BetAPI:
         events = response.json()["events"]
 
         gamebets = []
+        print(f"DB DB \n{self.db}")
         for event in events:
             if event["home"] is None:
                 continue
@@ -119,5 +123,5 @@ class BetAPI:
 
 if __name__ == "__main__":
     api = BetAPI()
-    api.get_request("Serie A")
+    api.get_request("Serie B")
 

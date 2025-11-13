@@ -7,10 +7,16 @@ from rapidfuzz import process, fuzz
 from pprint import pprint
 import os
 
-def fuzzy_match(name, choices, threshold=68):
+
+leagues = ["Serie A", "Serie B", "Champions League",
+           "Europa League", "Conference League", "Premier League",
+           "Bundesliga", "La Liga", "Ligue 1"]
+
+
+def fuzzy_match(name, choices, threshold=45):
     match, score, _ = process.extractOne(name, choices, scorer=fuzz.token_set_ratio)
     #print(f"SCELTO {match} corrispondente a {name} con affidabilità {score}%")
-    if "Qara" in name:
+    if "Sud" in name:
         print(f"SCELTO {match} corrispondente a {name} con affidabilità {score}%")
     if name == "Premier League":
         print(choices)
@@ -49,7 +55,7 @@ def fuzzy_league_match(league_name, jsondata, key_hint=None, threshold=80):
         allcomps = [comp["name"] for comp in jsondata]
         return fuzzy_match(league_name, allcomps)
 
-leagues = ["Serie A", "Champions League", "Europa League", "Conference League", "Premier League", "Bundesliga", "La Liga"]
+
 
 def saveMap(league):
     if type(league) == str:
@@ -116,7 +122,7 @@ def saveMap(league):
 
 def getCsv(league):
     script_dir = os.path.dirname(os.path.abspath(__file__))  # cartella dello script
-    idmap_path = os.path.join(script_dir, "api", "idmap.json")
+    idmap_path = os.path.join(script_dir, "idmap.json")
 
     if not os.path.exists(idmap_path):
         print(f"File idmap.json non trovato: {idmap_path}")
@@ -148,7 +154,7 @@ def getCsv(league):
     os.makedirs(cache_dir, exist_ok=True)
 
     cache_file = os.path.join(cache_dir, f"{league}cache.csv")
-    return cache_file
+
     print(cache_file)
     with open(cache_file, "w", encoding="utf-8") as f:
         f.write(datacsv.get_text())

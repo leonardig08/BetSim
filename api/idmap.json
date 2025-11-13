@@ -5,5 +5,7 @@
   "Europa League" : "4481-uefa-europa-league",
   "Conference League" :"5071-uefa-conference-league",
   "Bundesliga":  "4331-german-bundesliga",
-  "La Liga": "4335-spanish-la-liga"
+  "La Liga": "4335-spanish-la-liga",
+  "Serie B": "4394-italian-serie-b",
+  "Ligue 1": "4334-french-ligue-1"
 }

@@ -1,4 +1,6 @@
 {
   "Premier League": "england",
-  "Bundesliga":  "germany"
+  "Bundesliga":  "germany",
+  "Serie B": "italy",
+  "Ligue 1": "france"
 }

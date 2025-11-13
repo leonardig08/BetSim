@@ -33,11 +33,12 @@ def sanitize_id(s: str) -> str:
 
 
 
-leaguesDict = {"gamesItalia": ["Serie A"],
+leaguesDict = {"gamesItalia": ["Serie A", "Serie B"],
                "gamesUefa": ["Champions League", "Europa League", "Conference League"],
                "gamesInghilterra": ["Premier League"],
                "gamesGermania": ["Bundesliga"],
-               "gamesSpagna": ["La Liga"]}
+               "gamesSpagna": ["La Liga"],
+               "gamesFrancia": ["Ligue 1"]}
 
 
 
@@ -242,41 +243,21 @@ class MainAppScreen(Screen):
         yield Header(True)
         yield Center(Label("Soldi: ???", id="balanceLab"))
         with TabbedContent(id = "tabNation"):
-            with TabPane("Italia"):
-                selectLeague = Select.from_values(["Serie A"], prompt="Lega selezionata", allow_blank=False, id="selectItalia")
-                selectOdd = Select.from_values(betTypes, prompt="Tipo scommessa", allow_blank=False, id="betItalia")
-                with HorizontalGroup():
-                    yield selectLeague
-                    yield selectOdd
-                yield VerticalScroll(id="gamesItalia")
-            with TabPane("UEFA"):
-                selectLeague = Select.from_values(["Champions League","Europa League","Conference League"], prompt="Lega selezionata", allow_blank=False, id="selectUefa")
-                selectOdd = Select.from_values(betTypes, prompt="Tipo scommessa", allow_blank=False, id="betUefa")
-                with HorizontalGroup():
-                    yield selectLeague
-                    yield selectOdd
-                yield VerticalScroll(id="gamesUefa")
-            with TabPane("Inghilterra"):
-                selectLeague = Select.from_values(["Premier League"], prompt="Lega selezionata", allow_blank=False, id="selectInghilterra")
-                selectOdd = Select.from_values(betTypes, prompt="Tipo scommessa", allow_blank=False, id="betInghilterra")
-                with HorizontalGroup():
-                    yield selectLeague
-                    yield selectOdd
-                yield VerticalScroll(id="gamesInghilterra")
-            with TabPane("Germania"):
-                selectLeague = Select.from_values(["Bundesliga"], prompt="Lega selezionata", allow_blank=False, id="selectGermania")
-                selectOdd = Select.from_values(betTypes, prompt="Tipo scommessa", allow_blank=False, id="betGermania")
-                with HorizontalGroup():
-                    yield selectLeague
-                    yield selectOdd
-                yield VerticalScroll(id="gamesGermania")
-            with TabPane("Spagna"):
-                selectLeague = Select.from_values(["La Liga"], prompt="Lega selezionata", allow_blank=False, id="selectSpagna")
-                selectOdd = Select.from_values(betTypes, prompt="Tipo scommessa", allow_blank=False, id="betSpagna")
-                with HorizontalGroup():
-                    yield selectLeague
-                    yield selectOdd
-                yield VerticalScroll(id="gamesSpagna")
+
+            nominazioni = [item.replace("games", "") for item in leaguesDict.keys()]
+
+            for nom in nominazioni:
+                with TabPane(nom):
+                    selectLeague = Select.from_values(leaguesDict["games"+nom], prompt="Lega selezionata",
+                                                      allow_blank=False, id="select"+nom)
+                    selectOdd = Select.from_values(betTypes, prompt="Tipo scommessa", allow_blank=False, id="bet"+nom)
+                    with HorizontalGroup():
+                        yield selectLeague
+                        yield selectOdd
+                    yield VerticalScroll(id="games"+nom)
+
+
+
             with TabPane("Scheda"):
                 yield Label("La tua scheda", id="titleScheda")
                 with VerticalScroll(id="ticketGroup"):
@@ -373,23 +354,10 @@ class MainAppScreen(Screen):
                 return
             else:
                 self.old_nation = nation
-            match nation:
-                case "Italia":
-                    league = "Serie A"
-                    containerName = "gamesItalia"
-                case "UEFA":
-                    league = "Champions League"
-                    containerName = "gamesUefa"
-                case "Inghilterra":
-                    league = "Premier League"
-                    containerName = "gamesInghilterra"
-                case "Germania":
-                    league = "Bundesliga"
-                    containerName = "gamesGermania"
-                case "Spagna":
-                    league = "La Liga"
-                    containerName = "gamesSpagna"
+            containerName = "games"+nation
+            league = leaguesDict[containerName][0]
             self.update_games(league, containerName)
+
     async def on_select_changed(self, event: Select.Changed):
         if "bet" in event.select.id:
             betType = event.value
