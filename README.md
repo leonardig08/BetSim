@@ -15,5 +15,5 @@ BetSim è un'applicazione da terminale (TUI) interattiva realizzata in Python ut
     * **1X2:** Vittoria Casa (1), Pareggio (X), Vittoria Ospite (2).
     * **Under/Over:** Scommetti sul fatto che il totale dei gol sarà Inferiore (Under) o Superiore (Over) a un dato *line* (es. 2.5).
 * **Gestione del Saldo:** Aggiornamento automatico del saldo in base all'esito delle scommesse.
-* **Quote Casuali/Simulate:** Le quote e gli esiti delle partite sono generati in modo casuale per simulare un ambiente di scommessa dinamico.
+* **Quote Reali:** Le quote e gli esiti delle partite sono completamente reali e aggiornati.
 
