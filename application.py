@@ -285,7 +285,7 @@ class MainAppScreen(Screen):
             with open("data/balance.enc", "r", encoding="utf-8") as f:
                 tempbalance = json.loads(f.read())
         else:
-            tempbalance = 0
+            tempbalance = 50
             with open("data/balance.enc", "w", encoding="utf-8") as f:
                 f.write(json.dumps(tempbalance))
         self.moneyloaded = True
@@ -552,6 +552,10 @@ class BetSim(App):
         self.dataLoaded = False
         
         self.call_later(self.load_data)
+
+    def on_mount(self):
+        self.title = """| ⚽ NeoBetSim 2026 ⚽ |"""
+        self.sub_title = "Scommesse Simulate Nel Terminale"
     
     def load_main_screen(self):
         if self.dataLoaded:

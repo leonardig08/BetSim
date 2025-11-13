@@ -1,9 +1,10 @@
 /.venv
 /nomiTrascrizione.txt
 /__pycache__
-icont.ico
+ico.ico
 *.exe
 playwright/
 bets/
 api/__pycache__
 data/balance.enc
+/prod_build.bat

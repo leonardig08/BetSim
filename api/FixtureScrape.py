@@ -120,9 +120,8 @@ def saveMap(league):
         else:
             print("NO ID")
 
-def getCsv(league):
-    script_dir = os.path.dirname(os.path.abspath(__file__))  # cartella dello script
-    idmap_path = os.path.join(script_dir, "idmap.json")
+def getCsv(league): # cartella dello script
+    idmap_path =  "api/idmap.json"
 
     if not os.path.exists(idmap_path):
         print(f"File idmap.json non trovato: {idmap_path}")
@@ -150,10 +149,10 @@ def getCsv(league):
         print("Textarea con CSV non trovata nella pagina")
         return None
 
-    cache_dir = os.path.join(script_dir, "api", "cache")
+    cache_dir = "api/cache"
     os.makedirs(cache_dir, exist_ok=True)
 
-    cache_file = os.path.join(cache_dir, f"{league}cache.csv")
+    cache_file = f"api/cache/{league}cache.csv"
 
     print(cache_file)
     with open(cache_file, "w", encoding="utf-8") as f:
