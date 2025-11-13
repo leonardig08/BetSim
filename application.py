@@ -1,22 +1,35 @@
 import os
 import json
 import datetime
-from api import OddApi
+from api import OddApiNew
 from textual.app import App, ComposeResult
 from textual.containers import VerticalGroup, HorizontalGroup, VerticalScroll, Grid, Center
 from textual.widgets import Header, Label, Rule, LoadingIndicator, TabbedContent, TabPane, Select, Button, Collapsible, Input
 from textual.screen import Screen, ModalScreen
 from textual.widget import Widget
 from asset import stringText, cssText
-from textual import work
+from textual import work, log
 from dataclasses import dataclass, asdict
 from textual.reactive import reactive
+import pandas as pd
 
-scraper = OddApi.Scraper()
+scraper = OddApiNew.BetAPI()
 
 betTypes = ["1x2", "Under/Over"]
 
 mapNames = None
+
+
+import unicodedata
+import re
+
+def sanitize_id(s: str) -> str:
+    # Converti in forma decomposed (NFKD) e rimuovi caratteri non ASCII
+    s = unicodedata.normalize("NFKD", s)
+    s = s.encode("ascii", "ignore").decode()
+    # Sostituisci tutto ciò che non è lettera, numero o underscore con underscore
+    s = re.sub(r"[^a-zA-Z0-9_-]", "_", s)
+    return s
 
 
 
@@ -51,7 +64,7 @@ class SplashScreen(Screen):
 
 class GameObject(Widget):
     def __init__(self, gameObject, id=None, not1x2=False, prepress=None):
-        super().__init__(id=id)
+        super().__init__(id=sanitize_id(id))
         self.game = gameObject
         self.rendermode = not1x2
         self.prepress = prepress
@@ -60,7 +73,7 @@ class GameObject(Widget):
             with HorizontalGroup():
                 with VerticalGroup(id="groupGameDetail"):
                     yield Label(f"{self.game.home} - {self.game.away}")
-                    yield Label(f"{self.game.date}  ||  {self.game.time}", id="labelData")
+                    yield Label(f"{self.game.date}", id="labelData")
                 with HorizontalGroup(id="oddGroup"):
                     index = 0
                     btts = []
@@ -68,7 +81,7 @@ class GameObject(Widget):
                         with VerticalGroup(id=f"odd{i}"):
                             yield Label(i.upper(), id="labelUnit")
                             yield Rule(line_style="solid", id="ruleUnit")
-                            btts.append(Button(self.game.odds[index], "primary", name=f"{self.game.home.replace("/", "")}/{self.game.away.replace("/", "")}/{i}"))
+                            btts.append(Button(str(self.game.odds[index]), "primary", name=f"{self.game.home.replace("/", "")}/{self.game.away.replace("/", "")}/{i}"))
                             yield btts[index]
                         index += 1
                     if self.prepress is not None:
@@ -77,7 +90,7 @@ class GameObject(Widget):
             with HorizontalGroup():
                 with VerticalGroup(id="groupGameDetail"):
                     yield Label(f"{self.game.home} - {self.game.away}")
-                    yield Label(f"{self.game.date}  ||  {self.game.time}", id="labelData")
+                    yield Label(f"{self.game.date}", id="labelData")
                 with HorizontalGroup(id="oddGroup"):
                     index = 0
                     btts = []
@@ -85,7 +98,7 @@ class GameObject(Widget):
                         with VerticalGroup(id=f"odd{i}"):
                             yield Label(i.upper(), id="labelUnit")
                             yield Rule(line_style="solid", id="ruleUnit")
-                            btts.append(Button(self.game.odds[index], "primary", name=f"{self.game.home.replace("/", "")}/{self.game.away.replace("/", "")}/{i}"))
+                            btts.append(Button(str(self.game.odds[index]), "primary", name=f"{self.game.home.replace("/", "")}/{self.game.away.replace("/", "")}/{i}"))
                             yield btts[index]
                         index += 1
                     if self.prepress is not None:
@@ -96,7 +109,7 @@ class GameObject(Widget):
     def on_button_pressed(self, event: Button.Pressed):
         button = event.button
         data = button.name.split("/")
-        self.app.query_one("MainAppScreen").add_bet(self.game, data[2], button.name, self.rendermode)
+        self.screen.add_bet(self.game, data[2], button.name, self.rendermode)
 
 class TicketObject(Widget):
     def __init__(self, betObject, index,  id = None):
@@ -122,32 +135,24 @@ class TicketObject(Widget):
             print(self.bet)
             scommesseVinte = []
             self.multodds = 1
-            states = []
             for id, selected in self.bet.items():
                 game = selected[0]
-                data = game.date
-                data = data.split(" ")
-                print(data)
-                time = game.time
-                time = time.split(":")
-                print(time)
-                gameTime = datetime.datetime(int(data[2]), mappa_mesi.index(data[1]) + 1, int(data[0]), int(time[0]), int(time[1]))
-                gameString = None
-                state = None
-                if gameTime > self.time:
-                    state = 0
-                elif self.time + datetime.timedelta(minutes=120)  > gameTime:
-                    state = 1
-                elif self.time  > gameTime:
-                    state = 2
-                gameString = ["Partita non ancora iniziata","Partita finita","Partita in corso"][state]
                 score = None
+                for _, i in databaseGame[game.league].iterrows():
+                    print("CIO")
+                    print(i)
+                    if game.home == i["Home Team"] and game.away == i["Away Team"]:
+                        home_score = i["Home Score"]
+                        away_score = i["Away Score"]
+
+                        home_score = None if pd.isna(home_score) else home_score
+                        away_score = None if pd.isna(away_score) else away_score
+                        if home_score != None and away_score != None:
+                            score = [home_score, away_score]
+                gameString = "Nessun Risultato" if not score else "Risultato Disponibile"
+
                 oddSelected = selected[1]
-                if state == 1:
-                    for i in databaseGame[game.league]:
-                        if game.home == mapNames[game.league][i["HomeTeam"]] and game.away == mapNames[game.league][i["AwayTeam"]]:
-                            if i["HomeTeamScore"] != None and i["AwayTeamScore"] != None:
-                                score = [i["HomeTeamScore"], i["AwayTeamScore"]]
+
                 scoreString = "Risultato non presente" if score == None else f"{score[0]}-{score[1]}"
                 
                 wonBet = None
@@ -176,15 +181,14 @@ class TicketObject(Widget):
 
                 match wonBet:
                     case True:
-                        emoji = ":green_circle:"
+                        emoji = "🟢"
                     case False:
-                        emoji = ":red_circle:"
+                        emoji = "🔴"
                     case _:
-                        emoji = ":yellow_circle:"
+                        emoji = "🟡"
                 scommesseVinte.append(wonBet)
-                states.append(state)
                 self.multodds *= float(game.odds[associate[oddSelected]])
-                with Collapsible(title=f"{game.home} - {game.away} || {game.date} {game.time} || {gameString} || {emoji}"):
+                with Collapsible(title=f"{game.home} - {game.away} || {game.date} || {gameString} || {emoji}"):
                     yield Label(f"Selezionata: {oddSelected}\nQuotazione: {game.odds[associate[oddSelected]]}\nRisultato: {scoreString}")
             with HorizontalGroup(id="internalGroupCash"):
                 disableButton = not all(scommesseVinte)
@@ -208,7 +212,7 @@ class TicketObject(Widget):
         if contentId == "cashOutButton":
             print("cash")
             cash = round(self.value * self.multodds, 2)
-            self.app.query_one(MainAppScreen).balance += cash
+            self.app.query_one("MainAppScreen").balance += cash
         elif contentId == "removeBetButton":
             print("elimina")
             try:
@@ -224,12 +228,17 @@ class TicketObject(Widget):
 class MainAppScreen(Screen):
     balance = reactive(0)
     moneyloaded = False
-    def compose(self):
+    def __init__(self):
+        super().__init__(id="MainAppScreen")
         self.odd_cache = {}
         self.rejectIndex = 0
         self.current_bet = {}
-        self.old_nation="Italia"
+        self.old_nation = "Italia"
         self.old_bet = "1x2"
+
+    def compose(self):
+
+
         yield Header(True)
         yield Center(Label("Soldi: ???", id="balanceLab"))
         with TabbedContent(id = "tabNation"):
@@ -272,7 +281,7 @@ class MainAppScreen(Screen):
                 yield Label("La tua scheda", id="titleScheda")
                 with VerticalScroll(id="ticketGroup"):
                     for game, selectedBet in self.current_bet:
-                        with Collapsible(title=f"{game.home} - {game.away} || {game.date} {game.time}"):
+                        with Collapsible(title=f"{game.home} - {game.away} || {game.date}"):
                                 yield Label(f"Selezionata: {selectedBet}\nQuotazione: {game[selectedBet]}")
                 with HorizontalGroup(id="GroupBuy"):
                     yield Label("Costo €")
@@ -286,6 +295,7 @@ class MainAppScreen(Screen):
                 yield VerticalScroll(id="resultTicketGroup")
         self.call_later(self.clear_cache)
         self.call_after_refresh(self.load_money)
+        self.call_after_refresh(self.reload_db)
     def load_money(self):
         if os.path.exists("data/balance.enc"):
             with open("data/balance.enc", "r", encoding="utf-8") as f:
@@ -319,7 +329,7 @@ class MainAppScreen(Screen):
                 
                 temp = {}
                 for id, value in singlebet[1].items():
-                    value[0] = OddApi.Game(**value[0])
+                    value[0] = OddApiNew.Game(**value[0])
                     temp[id] = [value[0], value[1]]
                 bet.append(temp)
             bets.append(bet)
@@ -346,7 +356,7 @@ class MainAppScreen(Screen):
                             "Under": 0,
                             "Over": 1
                         }
-                        group.mount(Collapsible(Label(f"Selezionata: {selectedBet[1]}\nQuotazione: {game.odds[associate[selectedBet[1]]]}"), title=f"{game.home} - {game.away} || {game.date} {game.time}"))
+                        group.mount(Collapsible(Label(f"Selezionata: {selectedBet[1]}\nQuotazione: {game.odds[associate[selectedBet[1]]]}"), title=f"{game.home} - {game.away} || {game.date}"))
     def clear_cache(self):
         self.odd_cache = {}
     async def on_tabbed_content_tab_activated(self, event: TabbedContent.TabActivated):
@@ -434,10 +444,10 @@ class MainAppScreen(Screen):
             odds = self.odd_cache[keyleague]
         else:
             if underover:
-                odds = await scraper.get_other_bet(league)
+                odds = scraper.get_other_bet(league)
                 self.odd_cache[league+"uo"] = odds
             else:
-                odds = await scraper.get_request(league)
+                odds = scraper.get_request(league)
                 self.odd_cache[league] = odds
         await self.query_one(f"#{containerName}").remove_children()
         print(odds)
@@ -448,32 +458,34 @@ class MainAppScreen(Screen):
             for gameData in odds:
                 if underover:
                     odder = None
-                    if f"{gameData.home}{gameData.away}{gameData.date}" in self.current_bet:
+                    print(self.current_bet)
+                    if f"{gameData.home}{gameData.away}{gameData.date}{"uo" if underover else ""}" in self.current_bet:
                         odder = ["Under", "Over"].index(self.current_bet[f"{gameData.home}{gameData.away}{gameData.date}"][1])
                     print(odder)
-                    self.query_one(f"#{containerName}").mount(GameObject(gameData, id=f"{gameData.home.replace(" ", "").replace(".", "").replace("/","")}_{gameData.away.replace(" ", "").replace(".", "").replace("/","")}_uo", not1x2=True, prepress=odder))
+                    self.query_one(f"#{containerName}").mount(GameObject(gameData, id=f"{sanitize_id(gameData.home)}_{sanitize_id(gameData).away.replace(" ", "")}_uo", not1x2=True, prepress=odder))
                 else:
                     odder = None
+                    print(self.current_bet)
                     if f"{gameData.home}{gameData.away}{gameData.date}" in self.current_bet:
                         odder = ["1", "x", "2"].index(self.current_bet[f"{gameData.home}{gameData.away}{gameData.date}"][1])
                     print(odder)
-                    self.query_one(f"#{containerName}").mount(GameObject(gameData, id=f"{gameData.home.replace(" ", "").replace(".", "").replace("/","")}_{gameData.away.replace(" ", "").replace(".", "").replace("/","")}", prepress=odder))
+                    self.query_one(f"#{containerName}").mount(GameObject(gameData, id=f"{sanitize_id(gameData.home)}_{sanitize_id(gameData.away)}", prepress=odder))
         self.query_one(f"#{containerName}").set_loading(False)
     def add_bet(self, game, odd, buttonid, underover):
         print(self.current_bet)
         if f"{game.home}{game.away}{game.date}" in self.current_bet.keys():
             if self.current_bet[f"{game.home}{game.away}{game.date}"][1] != odd:
-                self.current_bet[f"{game.home}{game.away}{game.date}"] = [game, odd]
-                for button in self.query_one(f"#{game.home.replace(" ", "").replace(".", "").replace("/","")}_{game.away.replace(" ", "").replace(".", "").replace("/","")}" if not underover else f"#{game.home.replace(" ", "").replace(".", "").replace("/","")}_{game.away.replace(" ", "").replace(".", "").replace("/","")}_uo").query("Button"):
+                self.current_bet[f"{game.home}{game.away}{game.date}{"uo" if underover else ""}"] = [game, odd]
+                for button in self.query_one(f"#{sanitize_id(game.home)}_{sanitize_id(game.away)}" if not underover else f"#{sanitize_id(game.home)}_{sanitize_id(game.away)}_uo").query("Button"):
                     button.variant = "primary"
-                self.query_one(f"#{game.home.replace(" ", "").replace(".", "").replace("/","")}_{game.away.replace(" ", "").replace(".", "").replace("/","")}" if not underover else f"#{game.home.replace(" ", "").replace(".", "").replace("/","")}_{game.away.replace(" ", "").replace(".", "").replace("/","")}_uo").query_one(f"#odd{odd}").query_one("Button").variant = "success"
+                self.query_one(f"#{sanitize_id(game.home)}_{sanitize_id(game.away)}" if not underover else f"#{sanitize_id(game.home)}_{sanitize_id(game.away)}_uo").query_one(f"#odd{odd}").query_one("Button").variant = "success"
             else:
-                self.current_bet.pop(f"{game.home}{game.away}{game.date}")
-                for button in self.query_one(f"#{game.home.replace(" ", "").replace(".", "").replace("/","")}_{game.away.replace(" ", "").replace(".", "").replace("/","")}" if not underover else f"#{game.home.replace(" ", "").replace(".", "").replace("/","")}_{game.away.replace(" ", "").replace(".", "").replace("/","")}_uo").query("Button"): #.replace(" ", "").replace(".", "").replace("/","")
+                self.current_bet.pop(f"{game.home}{game.away}{game.date}{"uo" if underover else ""}")
+                for button in self.query_one(f"#{sanitize_id(game.home)}_{sanitize_id(game.away)}" if not underover else f"#{sanitize_id(game.home)}_{sanitize_id(game.away)}_uo").query("Button"):
                     button.variant = "primary"
         else:
-            self.current_bet[f"{game.home}{game.away}{game.date}"] = [game, odd]
-            self.query_one(f"#{game.home.replace(" ", "").replace(".", "").replace("/","")}_{game.away.replace(" ", "").replace(".", "").replace("/","")}" if not underover else f"#{game.home.replace(" ", "").replace(".", "").replace("/","")}_{game.away.replace(" ", "").replace(".", "").replace("/","")}_uo").query_one(f"#odd{odd}").query_one("Button").variant = "success"
+            self.current_bet[f"{game.home}{game.away}{game.date}{"uo" if underover else ""}"] = [game, odd]
+            self.query_one(f"#{sanitize_id(game.home)}_{sanitize_id(game.away)}" if not underover else f"#{sanitize_id(game.home)}_{sanitize_id(game.away)}_uo").query_one(f"#odd{odd}").query_one("Button").variant = "success"
 
     async def on_button_pressed(self, event: Button.Pressed):
         button = event.button
@@ -496,7 +508,10 @@ class MainAppScreen(Screen):
     def reload_db(self):
         for id, values in leaguesDict.items():
             for i in values:
-                databaseGame[i] = scraper.cacheDB(i)
+                value = scraper.cache_db(i)
+                print("Creating DB")
+                print(value)
+                databaseGame[i] = value
         self.reload_bets()
         self.app.call_from_thread(self.removeLoading)
 
@@ -514,6 +529,7 @@ class MainAppScreen(Screen):
             self.balance -= money
         if os.path.exists("bets"):
             for file in os.listdir("bets"):
+                if "memo" in file: continue
                 num = int(file.removesuffix(".bet"))
                 if num >= index:
                     index = num + 1
@@ -561,8 +577,8 @@ class BetSim(App):
     def load_data(self):
         for id, values in leaguesDict.items():
             for i in values:
-                databaseGame[i] = scraper.cacheDB(i)
-        with open("data/team_map.json", "r", encoding="utf-8") as f:
+                databaseGame[i] = scraper.cache_db(i)
+        with open("api/map.json", "r", encoding="utf-8") as f:
             global mapNames
             mapNames = json.loads(f.read())
         self.dataLoaded = True
