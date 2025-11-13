@@ -1,6 +1,9 @@
 import os
 import json
 import datetime
+
+from textual.css.query import NoMatches
+
 from api import OddApiNew
 from textual.app import App, ComposeResult
 from textual.containers import VerticalGroup, HorizontalGroup, VerticalScroll, Grid, Center
@@ -19,6 +22,13 @@ betTypes = ["1x2", "Under/Over"]
 
 mapNames = None
 
+associate = {
+                            "1": 0,
+                            "x": 1,
+                            "2": 2,
+                            "Under": 0,
+                            "Over": 1
+                        }
 
 import unicodedata
 import re
@@ -121,18 +131,8 @@ class TicketObject(Widget):
         self.multodds = None
         
     def compose(self):
-        associate = {
-                            "1": 0,
-                            "x": 1,
-                            "2": 2,
-                            "Under": 0,
-                            "Over": 1
-                        }
         with Collapsible(title=f"Scheda numero {self.index}"):
-            self.time = datetime.datetime.now()
-            mappa_mesi = ["Gennaio", "Febbraio", "Marzo", "Aprile",
-                "Maggio", "Giugno", "Luglio", "Agosto",
-                "Settembre", "Ottobre", "Novembre", "Dicembre"]
+
             print(self.bet)
             scommesseVinte = []
             self.multodds = 1
@@ -229,6 +229,7 @@ class TicketObject(Widget):
 class MainAppScreen(Screen):
     balance = reactive(0)
     moneyloaded = False
+    betpay = reactive("?")
     def __init__(self):
         super().__init__(id="MainAppScreen")
         self.odd_cache = {}
@@ -268,6 +269,8 @@ class MainAppScreen(Screen):
                     yield Label("Costo €")
                     yield Input(placeholder="Soldi", type="number", id="soldiInput")
                     yield Button("Compra la scommessa", variant="success", id="buyButton")
+                    yield Label(f"Guadagno Potenziale: {self.betpay} €", id="payoutLabel")
+
             with TabPane("Risultati"):
                 yield Label("Schede Acquistate", id="titleResult")
                 with HorizontalGroup():
@@ -294,6 +297,13 @@ class MainAppScreen(Screen):
             print("Saving ",newmoney)
             with open("data/balance.enc", "w", encoding="utf-8") as f:
                     f.write(json.dumps(newmoney))
+    def watch_betpay(self, newbetpay):
+        try:
+            self.query_one("#payoutLabel").update(f"Guadagno Potenziale: {newbetpay} €")
+        except NoMatches:
+            print("Payout not loaded still")
+            pass
+
     async def reload_bets(self):
         bets = []
         if not os.path.exists("bets"):
@@ -329,14 +339,7 @@ class MainAppScreen(Screen):
         print(self.current_bet)
         for gamelul, selectedBet in self.current_bet.items():
                         print(selectedBet)
-                        game = selectedBet[0] 
-                        associate = {
-                            "1": 0,
-                            "x": 1,
-                            "2": 2,
-                            "Under": 0,
-                            "Over": 1
-                        }
+                        game = selectedBet[0]
                         group.mount(Collapsible(Label(f"Selezionata: {selectedBet[1]}\nQuotazione: {game.odds[associate[selectedBet[1]]]}"), title=f"{game.home} - {game.away} || {game.date}"))
     def clear_cache(self):
         self.odd_cache = {}
@@ -454,6 +457,20 @@ class MainAppScreen(Screen):
         else:
             self.current_bet[f"{game.home}{game.away}{game.date}{"uo" if underover else ""}"] = [game, odd]
             self.query_one(f"#{sanitize_id(game.home)}_{sanitize_id(game.away)}" if not underover else f"#{sanitize_id(game.home)}_{sanitize_id(game.away)}_uo").query_one(f"#odd{odd}").query_one("Button").variant = "success"
+
+    async def on_input_changed(self, event: Input.Changed):
+        selected = event.input
+        if selected.id ==  "soldiInput":
+            if selected.value and selected.value != 0:
+                totalmult = 1
+                for bet in self.current_bet.values():
+                    oddsel = bet[0].odds[associate[bet[1]]]
+                    totalmult *= oddsel
+                self.betpay = round(float(float(selected.value) * totalmult),2)
+                print(self.betpay)
+            else:
+                self.betpay = "?"
+
 
     async def on_button_pressed(self, event: Button.Pressed):
         button = event.button

@@ -187,3 +187,6 @@ MainAppScreen #balanceLab{
     border: solid white;
     text-align: center
 }
+MainAppScreen #payoutLabel{
+    margin-left: 2;
+}
